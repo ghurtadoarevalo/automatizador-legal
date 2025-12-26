@@ -1,0 +1,193 @@
+{
+  "name": "Automatización judicial",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "97e09c79-f1c4-4452-8de8-db0170291798",
+      "name": "Ejecutar flujo"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "1cRetHvApMuonFg6mkQr3Ax-PtwpIOU4nDRPsIkxNXtk",
+          "mode": "list",
+          "cachedResultName": "table",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1cRetHvApMuonFg6mkQr3Ax-PtwpIOU4nDRPsIkxNXtk/edit?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "daacd8f8-aca4-4479-b60b-375848392607",
+      "name": "Descargar excel tabla",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "on3xHzZalxc7jbB6",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {
+          "headerRow": true
+        }
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "50f96795-d0ad-416f-b474-53fa3974df53",
+      "name": "Extraer datos tabla"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://fastapi_app:8000",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "cases",
+              "value": "={{ $('Extraer datos tabla').all() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "e463734e-7188-4005-a16b-ac3f9b081320",
+      "name": "Automatización pjud salas",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "sendTo": "pazvega02@gmail.com",
+        "subject": "=Tabla {{ $now.format('dd-MM-yyyy') }}",
+        "message": "={{ $data.data }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": ""
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "bd64ffbb-4341-4a67-990a-74f9b4072c79",
+      "name": "Enviar correo",
+      "webhookId": "31f0e8ed-c403-47f7-9441-6078f5f915b0",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "4NRv9HfgRNnWymlS",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Credenciales Google\nEs necesario tener una cuenta dev en google, crear una aplicación, bajar las credenciales y dar acceso a las apps de drive y gmail.",
+        "height": 192
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        -240
+      ],
+      "typeVersion": 1,
+      "id": "b0c0e62f-1a4e-4d4c-8fb5-7eccd193e9a5",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ejecutar flujo": {
+      "main": [
+        [
+          {
+            "node": "Descargar excel tabla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Descargar excel tabla": {
+      "main": [
+        [
+          {
+            "node": "Extraer datos tabla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer datos tabla": {
+      "main": [
+        [
+          {
+            "node": "Automatización pjud salas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Automatización pjud salas": {
+      "main": [
+        [
+          {
+            "node": "Enviar correo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "timezone": "America/Santiago",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "bb6898fc-32c0-4b97-9b92-bd76d60f35de",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ac17c3f7a998716277ddcdb42a828f3d0483a26db619f39c82069a816541a18e"
+  },
+  "id": "bEQy2OPlLh6NZNtl",
+  "tags": [
+    {
+      "updatedAt": "2025-12-26T01:13:23.021Z",
+      "createdAt": "2025-12-26T01:13:23.021Z",
+      "id": "AF3UgHdD2n428oD6",
+      "name": "playwright"
+    }
+  ]
+}
