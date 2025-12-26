@@ -180,7 +180,7 @@ def _is_no_data_message(schedule: list[list[str]] | None) -> str | None:
 
 
 def render_schedule_results_email_html(
-    schedules: list[list[list[str]]],
+    schedules: list[list[list[str]] | str],
     *,
     cases: list[dict] | None = None,
 ) -> str:
@@ -234,13 +234,18 @@ def render_schedule_results_email_html(
             case_wrapper if isinstance(case_wrapper, Mapping) else None
         )
 
-        rows = [r for r in (schedule or []) if r]
-        future_rows = sum(
-            1
-            for r in rows
-            if (parsed := _parse_ddmmyyyy(r[-1] if r else "")) is not None
-            and parsed > today
-        )
+        is_error = isinstance(schedule, str)
+        rows = []
+        future_rows = 0
+        
+        if not is_error:
+            rows = [r for r in (schedule or []) if r]
+            future_rows = sum(
+                1
+                for r in rows
+                if (parsed := _parse_ddmmyyyy(r[-1] if r else "")) is not None
+                and parsed > today
+            )
 
         parts.append('<tr><td style="padding-top:14px;">')
         parts.append(
@@ -254,16 +259,28 @@ def render_schedule_results_email_html(
             f'<div style="margin-top:4px; font-size:12px; {muted}">{escape(meta_line)}</div>'
         )
         parts.append('<div style="margin-top:10px;">')
-        parts.append(badge(f"Filas: {len(rows)}", variant="ok"))
-        parts.append("&nbsp;")
-        parts.append(
-            badge(
-                f"Fechas futuras: {future_rows}",
-                variant=("bad" if future_rows else "neutral"),
+        if is_error:
+            parts.append(badge("Error de validación", variant="bad"))
+        else:
+            parts.append(badge(f"Filas: {len(rows)}", variant="ok"))
+            parts.append("&nbsp;")
+            parts.append(
+                badge(
+                    f"Fechas futuras: {future_rows}",
+                    variant=("bad" if future_rows else "neutral"),
+                )
             )
-        )
         parts.append("</div>")
         parts.append("</td></tr>")
+
+        if is_error:
+            parts.append(
+                f'<tr><td style="padding:12px 14px 14px; font-size:13px; color:#fb7185;">'
+                f'<strong>Fallo la validación:</strong> {escape(schedule)}'
+                f'</td></tr>'
+            )
+            parts.append("</table></td></tr>")
+            continue
 
         if not rows:
             parts.append(
@@ -347,7 +364,7 @@ def render_schedule_results_email_html(
 
 
 def process_schedule_results(
-    schedule_results: list[list[list[str]]],
+    schedule_results: list[list[list[str]] | str],
     *,
     cases: list[dict] | None = None,
 ) -> str:
