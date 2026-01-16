@@ -7,6 +7,14 @@ from playwright.async_api import async_playwright, Playwright, Page
 from playwright_stealth import Stealth
 from pydantic import BaseModel
 
+from browserbase import Browserbase
+
+def _get_browserbase_config():
+    project_id = os.getenv("BROWSERBASE_PROJECT_ID")
+    api_key = os.getenv("BROWSERBASE_API_KEY")
+    if not project_id or not api_key:
+        raise ValueError("Browserbase configuration missing (BROWSERBASE_PROJECT_ID and BROWSERBASE_API_KEY)")
+    return project_id, api_key
 
 def _ts() -> str:
     return _dt.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -30,7 +38,7 @@ async def _dump_debug(page: Page, label: str) -> None:
 
 
 async def _init_browser_and_page(
-    p: Playwright,
+    playwright: Playwright,
     *,
     headless: bool,
     cdp_url: str | None,
@@ -43,30 +51,29 @@ async def _init_browser_and_page(
     - is_cdp=True means we must NOT close the browser (it belongs to the host).
     """
     if cdp_url:
-        # Normalize common user inputs (avoid accidental trailing "/." or "/")
-        cdp_url = cdp_url.strip()
-        while cdp_url.endswith("/.") or cdp_url.endswith("/"):
-            cdp_url = cdp_url[:-2] if cdp_url.endswith("/.") else cdp_url[:-1]
+        print(f"Connecting to host browser via CDP: {cdp_url}")
+        browser = await playwright.chromium.connect_over_cdp(cdp_url)
+        is_cdp = True
+    else:
+        print("Initializing Browserbase session...")
+        project_id, api_key = _get_browserbase_config()
+        bb = Browserbase(api_key=api_key)
+        session = bb.sessions.create(project_id=project_id)
+        browser = await playwright.chromium.connect_over_cdp(
+            session.connect_url, slow_mo=1000
+        )
+        is_cdp = True # Browserbase is also CDP
 
-        browser = await p.chromium.connect_over_cdp(cdp_url, slow_mo=1000)
-        # Reuse a persistent context if available (better for captcha/session).
-        if getattr(browser, "contexts", None) and browser.contexts:
-            context = browser.contexts[0]
-        else:
-            context = await browser.new_context(
-                timezone_id="America/Santiago",
-                locale="es-CL",
-            )
-        page = await context.new_page()
-        return browser, page, True
-
-    browser = await p.chromium.launch(headless=headless, slow_mo=1000)
-    context = await browser.new_context(
-        timezone_id="America/Santiago",
-        locale="es-CL",
-    )
+    # Reuse a persistent context if available (better for captcha/session).
+    if getattr(browser, "contexts", None) and browser.contexts:
+        context = browser.contexts[0]
+    else:
+        context = await browser.new_context(
+            timezone_id="America/Santiago",
+            locale="es-CL",
+        )
     page = await context.new_page()
-    return browser, page, False
+    return browser, page, is_cdp
 
 
 async def playwright_goto_courtroom_schedule_page(page: Page):
@@ -130,7 +137,9 @@ class Cases(BaseModel):
     cases: list[Case]
 
 
-async def playwright_start_process(cases: Cases, headless: bool = True, cdp_url: str | None = None):
+async def playwright_start_process(
+    cases: Cases, headless: bool = True, cdp_url: str | None = None
+):
     schedule_results: list[list[list[str]]] = []
 
     # Allow env var configuration (useful inside docker-compose)
@@ -142,7 +151,9 @@ async def playwright_start_process(cases: Cases, headless: bool = True, cdp_url:
     cm = async_playwright() if cdp_url else Stealth().use_async(async_playwright())
 
     async with cm as p:
-        browser, page, is_cdp = await _init_browser_and_page(p, headless=headless, cdp_url=cdp_url)
+        browser, page, is_cdp = await _init_browser_and_page(
+            p, headless=headless, cdp_url=cdp_url
+        )
         try:
             await playwright_goto_courtroom_schedule_page(page)
             print("Pagina cargada")

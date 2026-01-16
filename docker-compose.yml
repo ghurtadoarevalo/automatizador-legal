@@ -1,20 +1,11 @@
 services:
-  n8n:
-    image: n8nio/n8n
-    ports:
-      - "5678:5678"
-    environment:
-      - N8N_HOST=localhost
-      - WEBHOOK_URL=http://localhost:5678
-    volumes:
-      - n8n_data:/home/node/.n8n
-    restart: unless-stopped
-
   fastapi_app:
     # Build from the current directory using uv
     build: .
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     restart: unless-stopped
     volumes:
       # Mount source code for hot reload during development
@@ -31,7 +22,4 @@ services:
       #
       # IMPORTANT: Chrome rejects non-local Host headers (e.g. host.docker.internal).
       # Use an IP in the URL to avoid 500: "Host header is specified and is not an IP address or localhost."
-      - PLAYWRIGHT_CDP_URL=http://${HOST_IP}:9223
-
-volumes:
-  n8n_data:
+      #- PLAYWRIGHT_CDP_URL=http://${HOST_IP}:9223
