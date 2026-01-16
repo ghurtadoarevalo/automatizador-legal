@@ -7,6 +7,7 @@ from app.automatization import playwright_start_process
 from app.email import process_schedule_results
 from app.process_excel import validate_row_data
 
+
 app = FastAPI()
 
 
