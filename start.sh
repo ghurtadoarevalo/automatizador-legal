@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# Función de limpieza para asegurar que Chrome y el forwarder se cierren
+# Función de limpieza para asegurar que Brave (CDP) y el forwarder se cierren
 cleanup() {
     echo ""
-    echo "Cerrando Chrome y el forwarder en macOS..."
+    echo "Cerrando Brave y el forwarder en macOS..."
     if [ -n "$BROWSER_PID" ]; then
         kill $BROWSER_PID 2>/dev/null
     fi
     
     # Limpieza forzada de puertos para evitar "Address already in use"
-    # Puerto 9222 (Chrome) y 9223 (Forwarder)
+    # Puerto 9222 (Brave CDP) y 9223 (Forwarder)
     lsof -ti:9222,9223 | xargs kill -9 2>/dev/null
     
     echo "Procesos finalizados."

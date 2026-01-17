@@ -45,12 +45,12 @@ async def root(cases: Cases, format: str = "json"):
     try:
         if valid_cases:
             print(f"Iniciando proceso para {len(valid_cases)} casos válidos")
-            # If set, the container will use the Mac's Chrome UI via CDP
+            # If set, the container will use the Mac's Brave UI via CDP
             # Example: http://host.docker.internal:9222
             cdp_url = os.getenv("PLAYWRIGHT_CDP_URL")
             schedule_results = await playwright_start_process(
                 valid_cases,
-                headless=False,  # ignored when using CDP; Chrome is on your Mac anyway
+                headless=False,  # ignored when using CDP; Brave is on your Mac anyway
                 cdp_url=cdp_url,
             )
             

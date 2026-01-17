@@ -1,9 +1,9 @@
 """
-Small TCP forwarder to expose Chrome DevTools (CDP) from localhost to Docker.
+Small TCP forwarder to expose Chromium DevTools (CDP) from localhost to Docker (e.g., Brave/Chrome).
 
 Why:
-- Chrome DevTools often binds only to 127.0.0.1:9222 on macOS.
-- Chrome also rejects requests where the Host header isn't localhost or an IP.
+- Chromium DevTools often binds only to 127.0.0.1:9222 on macOS.
+- Some Chromium-based browsers (notably Brave) can reject requests where the Host header isn't localhost or an IP.
 - Docker containers therefore can't reliably use http://host.docker.internal:9222.
 
 Solution:

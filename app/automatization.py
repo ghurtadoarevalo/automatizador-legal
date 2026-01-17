@@ -36,7 +36,7 @@ async def _init_browser_and_page(
     cdp_url: str | None,
 ) -> tuple[object, Page, bool]:
     """
-    If cdp_url is provided, connect to a Chrome/Chromium instance running on the HOST (Mac)
+    If cdp_url is provided, connect to a Brave/Chromium instance running on the HOST (Mac)
     via CDP (e.g. http://host.docker.internal:9222) so the browser UI appears on the host.
 
     Returns: (browser, page, is_cdp)
@@ -164,7 +164,7 @@ async def playwright_start_process(cases: Cases, headless: bool = True, cdp_url:
             raise Exception("Error al obtener el horario de la sala")
         finally:
             await page.close()
-            # If connected to host Chrome via CDP, do not close the host browser.
+            # If connected to host Brave via CDP, do not close the host browser.
             if not is_cdp:
                 try:
                     await browser.close()
