@@ -23,7 +23,11 @@ trap cleanup SIGINT SIGTERM
 # Antes de empezar, nos aseguramos que no haya nada ocupando los puertos
 lsof -ti:9222,9223 | xargs kill -9 2>/dev/null
 
-echo "Iniciando Chrome y el forwarder en macOS..."
+# Detectar la IP de la Mac automáticamente
+export HOST_IP=$(ipconfig getifaddr en0 || ipconfig getifaddr en1)
+echo "IP detectada: $HOST_IP"
+
+echo "Iniciando Brave y el forwarder en macOS..."
 # Iniciamos el script de python en segundo plano
 python complements/run_browser.py &
 BROWSER_PID=$!

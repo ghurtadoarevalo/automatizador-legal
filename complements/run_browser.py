@@ -22,17 +22,18 @@ def run_forwarder_process():
 
 
 def run_browser_process():
-    chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    brave_path = "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"
     args = [
-        chrome_path,
+        brave_path,
         "--remote-debugging-port=9222",
-        f"--user-data-dir={os.path.expandvars('$HOME/chrome-pw-profile')}",
+        "--remote-allow-origins=*",
+        f"--user-data-dir={os.path.expandvars('$HOME/brave-pw-profile')}",
     ]
     try:
         # Usamos Popen para tener el PID y poder matarlo si es necesario
         subprocess.run(args)
     except Exception as e:
-        print(f"Error al iniciar Chrome: {e}")
+        print(f"Error al iniciar Brave: {e}")
 
 
 if __name__ == "__main__":
